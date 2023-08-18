@@ -1,5 +1,4 @@
 const moongoose = require('mongoose')
-const { logger } = require('./logger')
 
 class MongoSingleton {
   static #instance
