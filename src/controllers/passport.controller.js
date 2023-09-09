@@ -8,20 +8,9 @@ const { logger } = require('../config/logger')
 class PassportController {
   getRegister = async (req, res, next) => {
     try {
-      const { first_name, last_name, age, nickname } = req.body
-
-      if (!first_name || !last_name || !age || !nickname) {
-        CustomError.createError({
-          name: 'User register fail',
-          cause: generateRegisterErrorInfo(
-            first_name, last_name, age, nickname
-          ),
-          message: 'Error trying to register',
-          code: EError.INVALID_TYPE_ERROR
-        })
-      }
-
+      const { first_name, last_name, age, nickname, email, password } = req.body
       const newUser = req.user
+      console.log('🚀 ~ file: passport.controller.js:13 ~ PassportController ~ getRegister= ~ newUser:', newUser)
       const token = generateToken(newUser)
 
       res
@@ -38,19 +27,8 @@ class PassportController {
     try {
       const { username, password } = req.body
       const userDB = req.user
-      // logger.info(req.user)
-      const emailUser = req.body.email
+      const emailUser = req.user.email
 
-      if (!emailUser || !password) {
-        CustomError.createError({
-          name: 'User login fail',
-          cause: generateLoginErrorInfo({
-            emailUser, password
-          }),
-          message: 'Error trying to login',
-          code: EError.INVALID_VALUE_ERROR
-        })
-      }
       const access_Token = generateToken({
         first_name: userDB.first_name,
         last_name: userDB.last_name,
@@ -63,13 +41,13 @@ class PassportController {
 
       res
         .cookie('coderCookieToken', access_Token, {
-          maxAge: 60 * 60 * 100,
+          maxAge: 60 * 60 * 1000,
           httpOnly: true
         })
         // .send(access_Token)
         .redirect('/views/products')
     } catch (error) {
-      next(error)
+      console.log(error)
     }
   }
 
@@ -129,7 +107,7 @@ class PassportController {
 
       res
         .cookie('coderCookieToken', access_Token, {
-          maxAge: 60 * 60 * 100,
+          maxAge: 60 * 60 * 1000,
           httpOnly: true
         })
         .send(access_Token)

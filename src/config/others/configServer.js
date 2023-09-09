@@ -2,14 +2,15 @@ const dotenv = require('dotenv')
 dotenv.config()
 
 const { connect } = require('mongoose')
+const { logger } = require('../logger')
 
 module.exports = {
   connectDB: async () => {
     try {
       connect(process.env.MONGO_URL)
-      console.log('BBDD Connected via MongoDB')
+      logger.info('BBDD Connected via MongoDB')
     } catch (error) {
-      console.log(error)
+      logger.error(error)
     }
   }
 }

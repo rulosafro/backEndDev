@@ -4,12 +4,12 @@ const { cartService, productService, ticketService } = require('../service/index
 const { CustomError } = require('../utils/CustomError/CustomError')
 const { EError } = require('../utils/CustomError/Erros')
 const { generateCartErrorInfo } = require('../utils/CustomError/info')
+const { cartsModel } = require('../Daos/mongo/models/carts.model')
 
 class CartController {
   getCarts = async (req, res, next) => {
     try {
       const carts = await cartService.get()
-      logger.info(req.user)
       res.status(200).send({
         status: 'success',
         payload: carts
@@ -48,17 +48,7 @@ class CartController {
 
   getMyCart = async (req, res, next) => {
     try {
-      if (!cid) {
-        CustomError.createError({
-          name: 'Cart finder fail',
-          cause: generateCartErrorInfo(
-            cid
-          ),
-          message: 'Error trying find a cart by ID: ' + cid,
-          code: EError.ROUTING_ERROR
-        })
-      }
-      const cart = await cartService.getByID(req.user._id)
+      const cart = await cartsModel.getByID(req.user.id)
       res.status(200).send({
         status: 'success',
         payload: cart
@@ -223,6 +213,53 @@ class CartController {
     }
   }
 
+  putProductOnMyCartQuan = async (req, res, next) => {
+    try {
+      const { pid, num } = req.params
+      const quantity = parseInt(num)
+      const cid = req.user.cart
+
+      if (!pid) {
+        CustomError.createError({
+          name: 'Cart finder fail',
+          cause: generateCartErrorInfo(
+            pid
+          ),
+          message: 'Error trying find a cart by ID: ' + pid,
+          code: EError.ROUTING_ERROR
+        })
+      }
+
+      if (req.user.role === 'premium') {
+        const productData = productService.getByID(pid)
+        productData.owner === req.user.email && res.status(400).send('Un usuario premium no puede agregar productos de su pertenencia al carrito')
+      }
+
+      const product = {
+        id: pid,
+        quantity
+      }
+
+      const agregado = await cartService.add(cid, pid, quantity)
+      const resultado = await cartService.getByID(cid)
+      const balance2 = resultado.products.find((prod) => prod.product._id.toString() === pid)
+      if (balance2.quantity <= 0) {
+        const quitar = await cartService.deleteProduct(cid, pid)
+        res.status(200).send({
+          status: 'success',
+          payload: quitar
+        })
+      }
+
+      res.status(200).send({
+        status: 'success',
+        payload: resultado
+      })
+    } catch (error) {
+      next(error)
+    }
+  }
+
   deleteCart = async (req, res, next) => {
     try {
       const { cid } = req.params
@@ -270,7 +307,34 @@ class CartController {
         payload: quitar
       })
     } catch (error) {
-      console.log(error)
+      next(error)
+    }
+  }
+
+  deleteProductOnMyCart = async (req, res, next) => {
+    try {
+      const { pid } = req.params
+      const cid = req.user.cart
+
+      if (!cid) {
+        CustomError.createError({
+          name: 'Cart finder fail',
+          cause: generateCartErrorInfo(
+            cid
+          ),
+          message: 'Error trying find a cart by ID: ' + cid,
+          code: EError.ROUTING_ERROR
+        })
+      }
+
+      const quitar = await cartService.deleteProduct(cid, pid)
+
+      res.status(200).send({
+        status: 'success',
+        payload: quitar
+      })
+    } catch (error) {
+      next(error)
     }
   }
 }

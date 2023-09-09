@@ -1,0 +1,59 @@
+<div class="text-white">
+  <div class="d-flex justify-content-between align-items-center">
+    <h2 class="">Admin - Configuración de roles </h2>
+  </div>
+  <hr />
+  <p class="{{style}}">{{message}}</p>
+  <button onclick="deleteOldUsers()" class="btn btn-outline-danger mb-2">Eliminar usuarios que no se han conectado</button>
+  <p>Para poder hacer un usuario premium debe contar con su Identificación y Comprobantes en la web</p>
+  
+
+  <div class="d-flex row ms-2">
+    {{#each users}}
+      <div class="card mt-3 me-3" style="width: 25rem;">
+        <div class="pt-3">
+          <h5 class="card-title"><b>Usuario:</b> {{this.first_name}} {{this.last_name}}</h5>
+          <p class="card-title"><b>Email:</b> {{this.email}}</p>
+          <p class="card-title"><b>Role:</b> {{this.role}}</p>
+
+          <div class="d-flex flex-row gap-2 items-center pt-2 pb-4">
+            <button onclick="changeUserRole('{{this._id}}')" class="btn btn-primary">Role ↕️</button>
+            <button onclick="deleteUser('{{this._id}}')" class="btn btn-danger">Eliminar</button>
+          </div>
+        </div>
+      </div>
+    {{/each}}
+  </div>
+</div>
+
+<script>
+const changeUserRole = (uid) => {
+    fetch(`/api/users/premium/${uid}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+  })
+    .then(() => window.location.reload())
+}
+
+const deleteUser = (uid) => {
+    fetch(`/api/users/${uid}`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+  })
+    .then(() => window.location.reload())
+}
+
+const deleteOldUsers = () => {
+    fetch(`/api/users`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+  })
+    .then(() => window.location.reload())
+}
+</script>

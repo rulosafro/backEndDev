@@ -1,16 +1,24 @@
 const { Router } = require('express')
-const userController = require('../controllers/users.controller')
+const { getUserById, getUsers, createUser, updateUser, changeUserPremium, deleteUser, documentsUser, formData, deleteTimeUser, changeRoles } = require('../controllers/users.controller')
+const { uploader } = require('../utils/multer')
+const { passportCall } = require('../middlewares/passportCall')
+const { authorization } = require('../middlewares/authorizationJwtRole')
 
 const router = Router()
 
-router.get('/', userController.getUsers)
-router.get('/:uid', userController.getUserById)
+const midUser = [passportCall('jwt'), authorization('user')]
+const midAdmin = [passportCall('jwt'), authorization('admin')]
 
-router.post('/', userController.createUser)
+router.get('/', getUsers)
+router.get('/:uid', getUserById)
 
-router.put('/:uid', userController.updateUser)
-router.put('/premium/:uid', userController.changeUserPremium)
+router.post('/', midAdmin, createUser)
+router.post('/:uid/documents', midUser, uploader.fields([{ name: 'profile', maxCount: 1 }, { name: 'product' }, { name: 'document' }]), documentsUser)
 
-router.delete('/:uid', userController.deleteUser)
+router.put('/:uid', midAdmin, updateUser)
+router.put('/premium/:uid', midAdmin, changeUserPremium)
+
+router.delete('/:uid', midAdmin, deleteUser)
+router.delete('/', midAdmin, deleteTimeUser)
 
 module.exports = router
