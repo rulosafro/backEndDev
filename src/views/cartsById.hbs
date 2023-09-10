@@ -72,6 +72,7 @@ const form4 = async (cid) => {
   event.preventDefault()
   fetch(`/api/payments/${cid}`, {
     method: 'POST',
+    mode: 'cors',
     headers: {
       'Access-Control-Allow-Origin': '*',
 
